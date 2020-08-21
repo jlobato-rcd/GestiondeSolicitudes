@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="status">
+        <item>@string/erased</item>
+        <item>@string/created</item>
+        <item>@string/rejected</item>
+        <item>@string/released</item>
+        <item>@string/to_be_confirmed</item>
+        <item>@string/partially_confirmed</item>
+        <item>@string/reprocessing</item>
+        <item>@string/processed</item>
+    </string-array>
+</resources>
