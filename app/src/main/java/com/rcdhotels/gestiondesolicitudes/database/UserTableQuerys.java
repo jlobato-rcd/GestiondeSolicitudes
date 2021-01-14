@@ -132,7 +132,6 @@ public class UserTableQuerys {
         db.execSQL(SQL_DELETE_PERMISSIONS_TABLE);
         db.execSQL(SQL_DELETE_HOTEL_TABLE);
         db.execSQL(SQL_DELETE_WAREHOUSE_TABLE);
-        dbHelper.onCreate(db);
     }
 
     public static void getUserLogged(Context context){

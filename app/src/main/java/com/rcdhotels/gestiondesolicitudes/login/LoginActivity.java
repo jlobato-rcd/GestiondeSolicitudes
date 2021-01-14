@@ -22,6 +22,7 @@ import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.adapters.SpinnersLanguagesAdapter;
 import com.rcdhotels.gestiondesolicitudes.model.Hotel;
 import com.rcdhotels.gestiondesolicitudes.task.GetHotelsAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.task.GetWarehouseCatalogAsyncTask;
 import com.rcdhotels.gestiondesolicitudes.task.UserLoginTask;
 import com.rcdhotels.gestiondesolicitudes.utils.PreferencesLanguages;
 
@@ -46,9 +47,7 @@ public class LoginActivity extends AppCompatActivity {
 
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED || connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
-            GetHotelsAsyncTask getHotelsAsyncTask = new GetHotelsAsyncTask(LoginActivity.this);
-            getHotelsAsyncTask.execute();
-
+            new GetHotelsAsyncTask(LoginActivity.this).execute();
             textInputEditTextUser = findViewById(R.id.textInputEditTextUser);
             textInputEditTextPass = findViewById(R.id.textInputEditTextPass);
 
@@ -83,6 +82,12 @@ public class LoginActivity extends AppCompatActivity {
                 else {
                     new UserLoginTask(userName, password, hotel.getIdHotel(), LoginActivity.this).execute();
                 }
+            });
+
+            Button buttonExit = findViewById(R.id.buttonExit);
+            buttonExit.setOnClickListener(view -> {
+                finish();
+                System.exit(0);
             });
         }
         else {

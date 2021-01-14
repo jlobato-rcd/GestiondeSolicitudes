@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.adapters.ConfExtReqMatRecyclerViewAdapter;
-import com.rcdhotels.gestiondesolicitudes.adapters.ExtReqAgainMatRecyclerViewAdapter;
+import com.rcdhotels.gestiondesolicitudes.adapters.ReqAgainMatRecyclerViewAdapter;
 import com.rcdhotels.gestiondesolicitudes.adapters.UpdExtReqMatRecyclerViewAdapter;
 import com.rcdhotels.gestiondesolicitudes.model.Material;
 
@@ -44,6 +45,7 @@ public class GetExtResquestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -65,7 +67,7 @@ public class GetExtResquestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
             recyclerViewMaterials.setLayoutManager(new LinearLayoutManager(context));
             switch (process){
                 case "RequestAgain":
-                    ExtReqAgainMatRecyclerViewAdapter adapterRequestAgain = new ExtReqAgainMatRecyclerViewAdapter((Activity) context, items);
+                    ReqAgainMatRecyclerViewAdapter adapterRequestAgain = new ReqAgainMatRecyclerViewAdapter((Activity) context, items);
                     recyclerViewMaterials.setAdapter(adapterRequestAgain);
                     break;
                 case "UpdateRequest":
@@ -81,6 +83,9 @@ public class GetExtResquestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
                     }
                     ConfExtReqMatRecyclerViewAdapter adapterConfirmMaterials = new ConfExtReqMatRecyclerViewAdapter((Activity) context, materials);
                     recyclerViewMaterials.setAdapter(adapterConfirmMaterials);
+
+                    CheckBox checkBoxCheckAll = ((Activity)context).findViewById(R.id.checkBoxCheckAll);
+                    checkBoxCheckAll.setVisibility(View.VISIBLE);
                     break;
             }
             recyclerViewMaterials.setVisibility(View.VISIBLE);

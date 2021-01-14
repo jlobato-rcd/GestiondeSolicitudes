@@ -23,6 +23,7 @@ public class WarehouseTableQuerys {
         public static final String COLUMN_NAME_ZSUMI = "ZSUMI";
         public static final String COLUMN_NAME_STOCK0 = "STOCK0";
         public static final String COLUMN_NAME_CONF = "CONF";
+        public static final String COLUMN_NAME_STGELOCTYPE = "STGELOCTYPE";
     }
     
     public static final String SQL_CREATE_WAREHOUSE_TABLE =
@@ -32,7 +33,8 @@ public class WarehouseTableQuerys {
                     WarehouseTable.COLUMN_NAME_LGOBE + " TEXT," +
                     WarehouseTable.COLUMN_NAME_ZSUMI + " TEXT," +
                     WarehouseTable.COLUMN_NAME_STOCK0 + " TEXT," +
-                    WarehouseTable.COLUMN_NAME_CONF + " TEXT)";
+                    WarehouseTable.COLUMN_NAME_CONF + " TEXT," +
+                    WarehouseTable.COLUMN_NAME_STGELOCTYPE + " TEXT)";
 
     public static final String SQL_DELETE_WAREHOUSE_TABLE = "DROP TABLE IF EXISTS " + WarehouseTable.TABLE_NAME_WAREHOUSE;
 
@@ -56,7 +58,14 @@ public class WarehouseTableQuerys {
             contentValues.put(WarehouseTable.COLUMN_NAME_ZSUMI, warehouses.get(i).getZsumi());
             contentValues.put(WarehouseTable.COLUMN_NAME_STOCK0, warehouses.get(i).getStock0());
             contentValues.put(WarehouseTable.COLUMN_NAME_CONF, warehouses.get(i).getConf());
-            long inserted = db.insert(WarehouseTable.TABLE_NAME_WAREHOUSE, null, contentValues);
+            contentValues.put(WarehouseTable.COLUMN_NAME_STGELOCTYPE, warehouses.get(i).getStgeLocType());
+            long inserted = 0;
+            try {
+                inserted = db.insert(WarehouseTable.TABLE_NAME_WAREHOUSE, null, contentValues);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             if (inserted > 0){
                 allInserted = true;
             }
@@ -80,6 +89,7 @@ public class WarehouseTableQuerys {
                 WarehouseTable.COLUMN_NAME_ZSUMI,
                 WarehouseTable.COLUMN_NAME_STOCK0,
                 WarehouseTable.COLUMN_NAME_CONF,
+                WarehouseTable.COLUMN_NAME_STGELOCTYPE,
         };
 
         String selection = WarehouseTable.COLUMN_NAME_STGELOC+ " = ?";
@@ -102,9 +112,11 @@ public class WarehouseTableQuerys {
             warehouse.setZsumi(cursor.getString(3));
             warehouse.setStock0(cursor.getString(4));
             warehouse.setConf(cursor.getString(5));
+            warehouse.setStgeLocType(cursor.getString(6));
         }
         return warehouse;
     }
+
 
     public static ArrayList<Warehouse> findAllWarehouses(Context context){
 
@@ -119,6 +131,7 @@ public class WarehouseTableQuerys {
                 WarehouseTable.COLUMN_NAME_ZSUMI,
                 WarehouseTable.COLUMN_NAME_STOCK0,
                 WarehouseTable.COLUMN_NAME_CONF,
+                WarehouseTable.COLUMN_NAME_STGELOCTYPE,
         };
 
         String sortOrder = WarehouseTable.COLUMN_NAME_LGOBE + " ASC";
@@ -141,6 +154,7 @@ public class WarehouseTableQuerys {
             warehouse.setZsumi(cursor.getString(3));
             warehouse.setStock0(cursor.getString(4));
             warehouse.setConf(cursor.getString(5));
+            warehouse.setStgeLocType(cursor.getString(6));
             warehouses.add(warehouse);
         }
         return warehouses;
@@ -159,6 +173,7 @@ public class WarehouseTableQuerys {
                 WarehouseTable.COLUMN_NAME_ZSUMI,
                 WarehouseTable.COLUMN_NAME_STOCK0,
                 WarehouseTable.COLUMN_NAME_CONF,
+                WarehouseTable.COLUMN_NAME_STGELOCTYPE,
         };
 
         String selection = WarehouseTable.COLUMN_NAME_ZSUMI+ " = ?";
@@ -184,6 +199,52 @@ public class WarehouseTableQuerys {
             warehouse.setZsumi(cursor.getString(3));
             warehouse.setStock0(cursor.getString(4));
             warehouse.setConf(cursor.getString(5));
+            warehouse.setStgeLocType(cursor.getString(6));
+            warehouses.add(warehouse);
+        }
+        return warehouses;
+    }
+
+    public static ArrayList<Warehouse> findAllWarehousesByStgeLocType(int stgeloctype, Context context){
+
+        ArrayList<Warehouse> warehouses = new ArrayList<>();
+        DbHelper dbHelper = new DbHelper(context);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String[] projection = {
+                BaseColumns._ID,
+                WarehouseTable.COLUMN_NAME_STGELOC,
+                WarehouseTable.COLUMN_NAME_LGOBE,
+                WarehouseTable.COLUMN_NAME_ZSUMI,
+                WarehouseTable.COLUMN_NAME_STOCK0,
+                WarehouseTable.COLUMN_NAME_CONF,
+                WarehouseTable.COLUMN_NAME_STGELOCTYPE,
+        };
+
+        String selection = WarehouseTable.COLUMN_NAME_STGELOCTYPE+ " = ?";
+        String[] selectionArgs = {String.valueOf(stgeloctype)};
+
+        String sortOrder = WarehouseTable.COLUMN_NAME_LGOBE + " ASC";
+
+        Cursor cursor = db.query(
+                WarehouseTable.TABLE_NAME_WAREHOUSE,   // The table to query
+                projection,             // The array of columns to return (pass null to get all)
+                selection,          // The columns for the WHERE clause
+                selectionArgs,       // The values for the WHERE clause
+                null,           // don't group the rows
+                null,            // don't filter by row groups
+                sortOrder            // The sort order
+        );
+
+
+        while (cursor.moveToNext()){
+            Warehouse warehouse = new Warehouse();
+            warehouse.setStgeLoc(cursor.getString(1));
+            warehouse.setLgobe(cursor.getString(2));
+            warehouse.setZsumi(cursor.getString(3));
+            warehouse.setStock0(cursor.getString(4));
+            warehouse.setConf(cursor.getString(5));
+            warehouse.setStgeLocType(cursor.getString(6));
             warehouses.add(warehouse);
         }
         return warehouses;

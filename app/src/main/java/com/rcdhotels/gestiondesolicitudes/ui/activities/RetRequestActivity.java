@@ -2,6 +2,7 @@ package com.rcdhotels.gestiondesolicitudes.ui.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,12 +18,15 @@ import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.rcdhotels.gestiondesolicitudes.R;
-import com.rcdhotels.gestiondesolicitudes.adapters.ExtReqMatRecyclerViewAdapter;
+import com.rcdhotels.gestiondesolicitudes.adapters.ReqMatRecyclerViewAdapter;
+import com.rcdhotels.gestiondesolicitudes.model.Material;
 import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 import com.rcdhotels.gestiondesolicitudes.model.Warehouse;
 import com.rcdhotels.gestiondesolicitudes.task.CreateRetRequestAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.utils.Tools;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findAllWarehousesByZsumi;
@@ -33,6 +37,9 @@ public class RetRequestActivity extends AppCompatActivity {
     private RecyclerView recyclerViewMaterials;
     private TextInputEditText textInputEditText;
     private Warehouse warehouse;
+    private ReqMatRecyclerViewAdapter adapter;
+    private ActionModeCallback actionModeCallback;
+    private ActionMode actionMode;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -46,7 +53,7 @@ public class RetRequestActivity extends AppCompatActivity {
         Spinner spinnerWarehouses = findViewById(R.id.spinnerWarehouses);
         if(!warehouses.isEmpty()) {
             warehouse = new Warehouse();
-            warehouse.setStgeLoc("SELC");
+            warehouse.setStgeLoc("SELEC");
             warehouse.setLgobe(getString(R.string.select_warehouse));
             warehouses.add(0, warehouse);
             spinnerWarehouses.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, warehouses));
@@ -61,6 +68,7 @@ public class RetRequestActivity extends AppCompatActivity {
                 public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
                     // TODO Auto-generated method stub
                     warehouse = (Warehouse) spinnerWarehouses.getItemAtPosition(position);
+                    UtilsClass.currentRequest.setMOVE_STLOC(warehouse.getStgeLoc());
                 }
 
                 @Override
@@ -73,9 +81,101 @@ public class RetRequestActivity extends AppCompatActivity {
         recyclerViewMaterials = findViewById(R.id.recyclerViewMaterials);
         recyclerViewMaterials.setHasFixedSize(true);
         recyclerViewMaterials.setLayoutManager(new LinearLayoutManager(RetRequestActivity.this));
-        ExtReqMatRecyclerViewAdapter adapter = new ExtReqMatRecyclerViewAdapter(RetRequestActivity.this, UtilsClass.materialsToProcess);
+        adapter = new ReqMatRecyclerViewAdapter(RetRequestActivity.this, UtilsClass.currentRequest.getMaterials());
         recyclerViewMaterials.setAdapter(adapter);
+        adapter.setOnClickListener(new ReqMatRecyclerViewAdapter.OnClickListener() {
+            @Override
+            public void onItemClick(View view, Material material, int pos) {
+                if (adapter.getSelectedItemCount() > 0)
+                    enableActionMode(pos);
+            }
+            @Override
+            public void onItemLongClick(View view, Material material, int pos) {
+                enableActionMode(pos);
+            }
+        });
+        actionModeCallback = new ActionModeCallback();
         recyclerViewMaterials.setVisibility(View.VISIBLE);
+    }
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Tools.setSystemBarColor(RetRequestActivity.this, R.color.colorPrimaryDark);
+            mode.getMenuInflater().inflate(R.menu.menu_req_mat_sel, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+
+            if (item.getItemId() == R.id.action_delete) {
+                ArrayList<Material> materials = getSelectedItems();
+                for (int i = 0; i < materials.size(); i++) {
+                    UtilsClass.currentRequest.getMaterials().remove(materials.get(i));
+                    adapter = new ReqMatRecyclerViewAdapter(RetRequestActivity.this, UtilsClass.currentRequest.getMaterials());
+                    recyclerViewMaterials.setAdapter(adapter);
+                    if (UtilsClass.currentRequest.getMaterials().size() > 0) {
+                        adapter.setOnClickListener(new ReqMatRecyclerViewAdapter.OnClickListener() {
+                            @Override
+                            public void onItemClick(View view, Material material, int pos) {
+                                if (adapter.getSelectedItemCount() > 0)
+                                    enableActionMode(pos);
+                            }
+
+                            @Override
+                            public void onItemLongClick(View view, Material material, int pos) {
+                                enableActionMode(pos);
+                            }
+                        });
+                        actionModeCallback = new ActionModeCallback();
+                    }
+                    recyclerViewMaterials.setVisibility(View.VISIBLE);
+                }
+                mode.finish();
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            adapter.clearSelections();
+            actionMode = null;
+            Tools.setSystemBarColor(RetRequestActivity.this, R.color.colorPrimaryDark);
+        }
+    }
+
+    private ArrayList<Material> getSelectedItems() {
+        List<Integer> selectedItemPositions = adapter.getSelectedItems();
+        ArrayList<Material> materials = new ArrayList<>();
+        for (int i = 0; i < selectedItemPositions.size(); i++) {
+            materials.add(adapter.getItem(selectedItemPositions.get(i)));
+        }
+        return materials;
+    }
+
+    private void enableActionMode(int position) {
+        if (actionMode == null) {
+            actionMode = startSupportActionMode(actionModeCallback);
+        }
+        toggleSelection(position, adapter);
+    }
+
+    private void toggleSelection(int position, ReqMatRecyclerViewAdapter adapter) {
+        adapter.toggleSelection(position);
+        int count = adapter.getSelectedItemCount();
+        if (count == 0) {
+            actionMode.finish();
+        } else {
+            actionMode.setTitle(count + " " + getString(R.string.selected));
+            actionMode.invalidate();
+        }
     }
 
     @Override
@@ -106,7 +206,7 @@ public class RetRequestActivity extends AppCompatActivity {
             else {
                 boolean error = false;
                 recyclerViewMaterials = findViewById(R.id.recyclerViewMaterials);
-                ExtReqMatRecyclerViewAdapter adapter = (ExtReqMatRecyclerViewAdapter) recyclerViewMaterials.getAdapter();
+                ReqMatRecyclerViewAdapter adapter = (ReqMatRecyclerViewAdapter) recyclerViewMaterials.getAdapter();
 
                 for (int i = 0; i < adapter.getItemCount(); i++) {
                     if (adapter.getItem(i).getREQ_QNT() == 0){
@@ -115,14 +215,14 @@ public class RetRequestActivity extends AppCompatActivity {
                         break;
                     }
                     else if(adapter.getItem(i).getREQ_QNT() > adapter.getItem(i).getLABST()){
-                        Toast.makeText(RetRequestActivity.this, getString(R.string.req_qnt_exceeded1) +" "+ adapter.getItem(i).getMAKTX() +" "+ getString(R.string.req_qnt_exceeded2) +" "+ adapter.getItem(i).getLABST(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RetRequestActivity.this, getString(R.string.req_qnt_exceeded1) +" "+ adapter.getItem(i).getMAKTX() +" "+ getString(R.string.req_qnt_exceeded2) +" "+ adapter.getItem(i).getLABST( ), Toast.LENGTH_SHORT).show();
                         error = true;
                         break;
                     }
                 }
 
                 if (!error){
-                    new CreateRetRequestAsyncTask(UtilsClass.materialsToProcess, textInputEditText.getText().toString(), warehouse.getStgeLoc(), RetRequestActivity.this).execute();
+                    new CreateRetRequestAsyncTask(textInputEditText.getText().toString(), RetRequestActivity.this).execute();
                 }
             }
         }

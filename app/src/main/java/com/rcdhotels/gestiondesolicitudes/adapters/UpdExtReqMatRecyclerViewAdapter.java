@@ -70,18 +70,21 @@ public class UpdExtReqMatRecyclerViewAdapter extends RecyclerView.Adapter<UpdExt
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 final EditText editTextReqQnt = viewHolder.editTextReqQnt;
+                Material material1 = list.get(position);
                 if(!editTextReqQnt.getText().toString().isEmpty()){
-                    Material material1 = list.get(position);
                     if (editTextReqQnt.getText().toString().startsWith(".")) {
                         String countMat = "0" + editTextReqQnt.getText().toString();
                         material1.setREQ_QNT(Float.parseFloat(countMat));
                     }
                     else
                         material1.setREQ_QNT(Float.parseFloat(editTextReqQnt.getText().toString()));
+                    viewHolder.textViewTotal.setText("$" + df.format(material1.getREQ_QNT() * material1.getVERPR()));
                     list.set(position, material1);
                 }
                 else{
-                    list.set(position, material);
+                    material1.setREQ_QNT(0);
+                    viewHolder.textViewTotal.setText("$" + df.format(material1.getREQ_QNT() * material1.getVERPR()));
+                    list.set(position, material1);
                 }
             }
 

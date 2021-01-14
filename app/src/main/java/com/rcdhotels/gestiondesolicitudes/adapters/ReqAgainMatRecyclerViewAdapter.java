@@ -15,13 +15,13 @@ import com.rcdhotels.gestiondesolicitudes.model.Material;
 
 import java.util.ArrayList;
 
-public class ExtReqAgainMatRecyclerViewAdapter extends RecyclerView.Adapter<ExtReqAgainMatRecyclerViewAdapter.ViewHolder> {
+public class ReqAgainMatRecyclerViewAdapter extends RecyclerView.Adapter<ReqAgainMatRecyclerViewAdapter.ViewHolder> {
 
     private ArrayList<Material> list;
     private ArrayList<Material> arrayList;
     private Context mContext;
 
-    public ExtReqAgainMatRecyclerViewAdapter(Activity mContext, ArrayList<Material> list) {
+    public ReqAgainMatRecyclerViewAdapter(Activity mContext, ArrayList<Material> list) {
         this.list = list;
         this.arrayList = new ArrayList<>(list);
         this.mContext = mContext;

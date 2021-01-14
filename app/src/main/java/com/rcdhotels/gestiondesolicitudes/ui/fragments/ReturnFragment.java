@@ -1,10 +1,6 @@
 package com.rcdhotels.gestiondesolicitudes.ui.fragments;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -12,11 +8,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.DatePicker;
-import android.widget.Toast;
+import android.view.Window;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,16 +19,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.rcdhotels.gestiondesolicitudes.R;
-import com.rcdhotels.gestiondesolicitudes.adapters.RequestRecyclerViewAdapter;
-import com.rcdhotels.gestiondesolicitudes.main.MainActivity;
-import com.rcdhotels.gestiondesolicitudes.task.GetExtRequestAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.adapters.ReqRecyclerViewAdapter;
 import com.rcdhotels.gestiondesolicitudes.task.GetRetRequestAsyncTask;
-import com.rcdhotels.gestiondesolicitudes.ui.activities.RetMaterialSelectionActivity;
+import com.rcdhotels.gestiondesolicitudes.ui.dialog.RetFilterDialog;
+import com.rcdhotels.gestiondesolicitudes.ui.dialog.RetFilterMaterialsDialog;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.currentFragment;
 import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.user;
@@ -42,10 +33,9 @@ public class ReturnFragment extends Fragment {
 
     private SwipeRefreshLayout swipeLayout;
     private RecyclerView recyclerViewRequests;
-    private RequestRecyclerViewAdapter adapter;
-    private String date;
-    private int status;
+    private ReqRecyclerViewAdapter adapter;
     private FloatingActionButton fab2;
+    private int status = -1;
 
     @SuppressLint("SimpleDateFormat")
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -56,21 +46,21 @@ public class ReturnFragment extends Fragment {
         setHasOptionsMenu(true);
         swipeLayout = root.findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(() -> {
-            date = "";
-            status = -1;
-            new GetRetRequestAsyncTask(getContext(), date, status).execute();
+            if (user.getRole().equalsIgnoreCase("GS_REPRO")){
+                status = 6;
+            }
+            if(user.getRole().equalsIgnoreCase("GS_AUTOR2") || user.getRole().equalsIgnoreCase("GS_AUTOR3") || user.getRole().equalsIgnoreCase("GS_REPRO"))
+                new GetRetRequestAsyncTask(getContext(), "", "", status,  "", "", "").execute();
+            else
+                new GetRetRequestAsyncTask(getContext(), "", "", status,  user.getWarehouse(), "", "").execute();
         });
 
         fab2 = root.findViewById(R.id.fab_2);
         fab2.setOnClickListener(v -> {
-            ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
-                startActivity(new Intent(getContext(), RetMaterialSelectionActivity.class));
-                getActivity().overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
-            } else {
-                Toast.makeText(getContext(), R.string.internet_connection_failed, Toast.LENGTH_LONG).show();
-            }
+            RetFilterMaterialsDialog retFilterMaterialsDialog = new RetFilterMaterialsDialog(requireContext());
+            retFilterMaterialsDialog.show();
+            Window window = retFilterMaterialsDialog.getWindow();
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         });
         if (user.getRole().contains("GS_SOLIC")){
             fab2.setVisibility(View.VISIBLE);
@@ -85,9 +75,13 @@ public class ReturnFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        date = "";
-        status = -1;
-        new GetRetRequestAsyncTask(getContext(), date, status).execute();
+        if (user.getRole().equalsIgnoreCase("GS_REPRO")){
+            status = 6;
+        }
+        if(user.getRole().equalsIgnoreCase("GS_AUTOR2") || user.getRole().equalsIgnoreCase("GS_AUTOR3") || user.getRole().equalsIgnoreCase("GS_REPRO"))
+            new GetRetRequestAsyncTask(getContext(), "", "", status,  "", "", "").execute();
+        else
+            new GetRetRequestAsyncTask(getContext(), "", "", status,  user.getWarehouse(), "", "").execute();
     }
 
     @Override
@@ -96,7 +90,7 @@ public class ReturnFragment extends Fragment {
         getActivity().getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem searchItem = menu.findItem(R.id.action_search);
         recyclerViewRequests = getActivity().findViewById(R.id.recyclerViewRequests);
-        adapter = (RequestRecyclerViewAdapter) recyclerViewRequests.getAdapter();
+        adapter = (ReqRecyclerViewAdapter) recyclerViewRequests.getAdapter();
         SearchView searchView = (SearchView) searchItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -109,7 +103,7 @@ public class ReturnFragment extends Fragment {
                 if (recyclerViewRequests == null)
                     recyclerViewRequests = getActivity().findViewById(R.id.recyclerViewRequests);
                 else if (adapter == null)
-                    adapter = (RequestRecyclerViewAdapter) recyclerViewRequests.getAdapter();
+                    adapter = (ReqRecyclerViewAdapter) recyclerViewRequests.getAdapter();
                 else {
                     adapter.getFilter().filter(newText);
                 }
@@ -123,34 +117,13 @@ public class ReturnFragment extends Fragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         recyclerViewRequests = getActivity().findViewById(R.id.recyclerViewRequests);
-        adapter = (RequestRecyclerViewAdapter) recyclerViewRequests.getAdapter();
+        adapter = (ReqRecyclerViewAdapter) recyclerViewRequests.getAdapter();
 
-        if (item.getItemId() == R.id.action_date){
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
-            DatePicker picker = new DatePicker(getContext());
-            picker.setCalendarViewShown(false);
-            builder.setView(picker);
-            builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-                builder.create().dismiss();
-            });
-            builder.setPositiveButton(R.string.menu_confirm, (dialog, which) -> {
-                int day = picker.getDayOfMonth();
-                String dd;
-                if (day < 10)
-                    dd = "0" + day;
-                else
-                    dd = String.valueOf(day);
-                int month = picker.getMonth() + 1;
-                String mm;
-                if (month < 10)
-                    mm = "0" + month;
-                else
-                    mm = String.valueOf(month);
-                int year = picker.getYear();
-                date = year+"-"+mm+"-"+dd;
-                new GetRetRequestAsyncTask(getContext(), date, which).execute();
-            });
-            builder.show();
+        if (item.getItemId() == R.id.action_filter){
+            RetFilterDialog retFilterDialog = new RetFilterDialog(getActivity());
+            retFilterDialog.show();
+            Window window = retFilterDialog.getWindow();
+            window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
         return super.onOptionsItemSelected(item);
     }

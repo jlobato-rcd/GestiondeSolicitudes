@@ -17,16 +17,12 @@ import android.widget.Toast;
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.adapters.MatSelRecyclerViewAdapter;
 import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
-import com.rcdhotels.gestiondesolicitudes.task.GetRetMaterialsAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.task.GetRetMaterialsToSelectAsyncTask;
 
 public class RetMaterialSelectionActivity extends AppCompatActivity {
 
-    private SwipeRefreshLayout swipeLayout;
     private RecyclerView recyclerViewMaterials;
     private MatSelRecyclerViewAdapter matSelRecyclerViewAdapter;
-    private int ztype;
-    private String StgeLoc = "";
-    private boolean stock0 = true;
     private int LAUNCH_MATERIALS_ACTIVITY = 1;
     private Button buttonGoToRequest;
 
@@ -37,16 +33,11 @@ public class RetMaterialSelectionActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        swipeLayout = findViewById(R.id.swipe_container);
-        swipeLayout.setOnRefreshListener(() -> {
-            StgeLoc = "";
-            new GetRetMaterialsAsyncTask(RetMaterialSelectionActivity.this).execute();
-        });
-        new GetRetMaterialsAsyncTask(RetMaterialSelectionActivity.this).execute();
+        new GetRetMaterialsToSelectAsyncTask(getIntent().getStringExtra("MATTYPE"), RetMaterialSelectionActivity.this).execute();
 
         buttonGoToRequest = findViewById(R.id.buttonGoToRequest);
         buttonGoToRequest.setOnClickListener(v -> {
-            if (UtilsClass.materialsToProcess != null && !UtilsClass.materialsToProcess.isEmpty()){
+            if (UtilsClass.currentRequest.getMaterials() != null && !UtilsClass.currentRequest.getMaterials().isEmpty()){
                 startActivityForResult(new Intent(this, RetRequestActivity.class), LAUNCH_MATERIALS_ACTIVITY);
                 overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
             }

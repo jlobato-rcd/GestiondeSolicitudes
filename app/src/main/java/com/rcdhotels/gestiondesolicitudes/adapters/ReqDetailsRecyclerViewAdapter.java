@@ -5,31 +5,43 @@ import android.app.Activity;
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.model.Material;
 import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
+import com.rcdhotels.gestiondesolicitudes.utils.Tools;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetailsRecyclerViewAdapter.ViewHolder> {
 
     private ArrayList<Material> list;
     private Context mContext;
     private static DecimalFormat df = new DecimalFormat("0.00");
+    private SparseBooleanArray selected_items;
+    private int current_selected_idx = -1;
+    private OnClickListener onClickListener = null;
 
     public ReqDetailsRecyclerViewAdapter(Activity mContext, ArrayList<Material> list) {
         this.list = list;
         this.mContext = mContext;
+        selected_items = new SparseBooleanArray();
+    }
+
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 
     public Material getItem(int position) {
@@ -52,6 +64,7 @@ public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetai
     public void onBindViewHolder(final ViewHolder viewHolder, int position) {
 
         Material material = list.get(position);
+        float valorOriginal = material.getREQ_QNT();
         df.setRoundingMode(RoundingMode.UP);
         viewHolder.textViewMaktx.setText(material.getMAKTX());
         viewHolder.textViewMaterial.setText(String.valueOf(material.getMATERIAL()));
@@ -61,7 +74,7 @@ public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetai
             viewHolder.editTextReqQnt.setText(String.valueOf(material.getREQ_QNT()).replace(".0",""));
         else
             viewHolder.editTextReqQnt.setText(String.valueOf(material.getREQ_QNT()));
-        if (!UtilsClass.user.getRole().equalsIgnoreCase("GS_PROCE"))
+        if (!UtilsClass.user.getRole().equalsIgnoreCase("GS_PROCE") && !UtilsClass.user.getRole().contains("GS_AUTOR"))
             viewHolder.editTextReqQnt.setEnabled(false);
         viewHolder.textViewTotal.setText("$" + df.format(material.getREQ_QNT() * material.getVERPR()));
         viewHolder.editTextReqQnt.addTextChangedListener(new TextWatcher() {
@@ -73,28 +86,40 @@ public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetai
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 final EditText editTextReqQnt = viewHolder.editTextReqQnt;
+
                 if(!editTextReqQnt.getText().toString().isEmpty()){
                     Material material1 = list.get(position);
                     if (editTextReqQnt.getText().toString().startsWith(".")) {
                         String countMat = "0" + editTextReqQnt.getText().toString();
                         material1.setREQ_QNT(Float.parseFloat(countMat));
                     }
-                    else
-                        material1.setREQ_QNT(Float.parseFloat(editTextReqQnt.getText().toString()));
+                    else {
 
-                    if (UtilsClass.user.getRole().equalsIgnoreCase("GS_PROCE")){
-                        for (int i = 0; i < UtilsClass.currentRequest.getMaterials().size(); i++) {
-                            if (UtilsClass.currentRequest.getMaterials().get(i).getMATERIAL() == material1.getMATERIAL()) {
-                                UtilsClass.currentRequest.getMaterials().get(i).setREQ_QNT(material1.getREQ_QNT());
-                                UtilsClass.currentRequest.getMaterials().get(i).setQNT_TO_CONF(material1.getREQ_QNT());
+
+                        if(Float.parseFloat(editTextReqQnt.getText().toString())<=valorOriginal)
+                        {
+                            material1.setREQ_QNT(Float.parseFloat(editTextReqQnt.getText().toString()));
+                            if (UtilsClass.user.getRole().equalsIgnoreCase("GS_PROCE")){
+                                for (int i = 0; i < UtilsClass.currentRequest.getMaterials().size(); i++) {
+                                    if (UtilsClass.currentRequest.getMaterials().get(i).getMATERIAL() == material1.getMATERIAL()) {
+                                        UtilsClass.currentRequest.getMaterials().get(i).setREQ_QNT(material1.getREQ_QNT());
+                                        UtilsClass.currentRequest.getMaterials().get(i).setQNT_TO_CONF(material1.getREQ_QNT());
+                                    }
+                                }
                             }
+                            viewHolder.textViewTotal.setText("$" + df.format(material1.getREQ_QNT() * material.getVERPR()));
+                            //list.set(position, material1);
+                        }
+                        else{
+                            Tools.hideKeyboard((Activity) mContext);
+                            Toast.makeText(mContext, "El Valor debe ser menor al original.",Toast.LENGTH_SHORT).show();
+                            editTextReqQnt.setText("");
                         }
                     }
-                    viewHolder.textViewTotal.setText("$" + df.format(material1.getREQ_QNT() * material.getVERPR()));
-                    list.set(position, material1);
+
                 }
                 else{
-                    list.set(position, material);
+                   // list.set(position, material);
                 }
             }
 
@@ -103,12 +128,75 @@ public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetai
 
             }
         });
+        viewHolder.lyt_parent.setActivated(selected_items.get(position, false));
+        viewHolder.lyt_parent.setOnClickListener(v -> {
+            if (onClickListener == null) return;
+            onClickListener.onItemClick(v, material, position);
+        });
+
+        viewHolder.lyt_parent.setOnLongClickListener(v -> {
+            if (onClickListener == null) return false;
+            onClickListener.onItemLongClick(v, material, position);
+            return true;
+        });
+        toggleCheckedIcon(viewHolder, position);
         viewHolder.itemView.setTag(viewHolder);
+    }
+
+    private void toggleCheckedIcon(ViewHolder holder, int position) {
+        if (selected_items.get(position, false)) {
+            if (current_selected_idx == position) resetCurrentIndex();
+        }
+        else {
+            if (current_selected_idx == position) resetCurrentIndex();
+        }
+    }
+
+    public void toggleSelection(int pos) {
+        current_selected_idx = pos;
+        if (selected_items.get(pos, false)) {
+            selected_items.delete(pos);
+        } else {
+            selected_items.put(pos, true);
+        }
+        notifyItemChanged(pos);
+    }
+
+    public void clearSelections() {
+        selected_items.clear();
+        notifyDataSetChanged();
+    }
+
+    public int getSelectedItemCount() {
+        return selected_items.size();
+    }
+
+    public List<Integer> getSelectedItems() {
+        List<Integer> items = new ArrayList<>(selected_items.size());
+        for (int i = 0; i < selected_items.size(); i++) {
+            items.add(selected_items.keyAt(i));
+        }
+        return items;
+    }
+
+    public void removeData(int position) {
+        list.remove(position);
+        resetCurrentIndex();
+    }
+
+    private void resetCurrentIndex() {
+        current_selected_idx = -1;
+    }
+
+    public interface OnClickListener {
+        void onItemClick(View view, Material obj, int pos);
+        void onItemLongClick(View view, Material obj, int pos);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         private TextView textViewMaktx, textViewMaterial, textViewVerpr, textViewTotal;
         private EditText editTextReqQnt, editTextEntryUom;
+        public View lyt_parent;
 
         public ViewHolder(View v) {
             super(v);
@@ -118,6 +206,7 @@ public class ReqDetailsRecyclerViewAdapter extends RecyclerView.Adapter<ReqDetai
             textViewTotal = v.findViewById(R.id.textViewTotal);
             editTextReqQnt = v.findViewById(R.id.editTextReqQnt);
             editTextEntryUom = v.findViewById(R.id.editTextEntryUom);
+            lyt_parent = v.findViewById(R.id.lyt_parent);
             itemView.setTag(v);
         }
     }

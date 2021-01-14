@@ -14,7 +14,37 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.activities.ReqDetailsActivity">
+            android:name=".ui.dialog.ExtFilterDialog"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+            tools:ignore="Instantiatable"
+            tools:targetApi="lollipop">
+        </activity>
+        <activity
+            android:name=".ui.dialog.RetFilterDialog"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+            tools:ignore="Instantiatable"
+            tools:targetApi="lollipop">
+        </activity>
+        <activity
+            android:name=".ui.dialog.ExtFilterMaterialsDialog"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+            tools:ignore="Instantiatable"
+            tools:targetApi="lollipop">
+        </activity>
+        <activity
+            android:name=".ui.dialog.RetFilterMaterialsDialog"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+            tools:ignore="Instantiatable"
+            tools:targetApi="lollipop">
+        </activity>
+        <activity
+            android:name=".ui.activities.ReqDetailsActivity"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
         </activity>
         <activity
             android:name=".ui.activities.ExtConfirmMaterialsActivity"
@@ -59,6 +89,7 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -68,6 +99,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

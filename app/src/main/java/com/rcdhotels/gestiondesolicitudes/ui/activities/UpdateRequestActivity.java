@@ -63,7 +63,7 @@ public class UpdateRequestActivity extends AppCompatActivity {
             for (int i = 0; i < adapter.getItemCount(); i++) {
                 materials.add(adapter.getItem(i));
             }
-            new UpdateRequestMaterialsAsyncTask(materials, UpdateRequestActivity.this).execute();
+            new UpdateRequestMaterialsAsyncTask(materials, true,UpdateRequestActivity.this).execute();
         }
         return super.onOptionsItemSelected(item);
     }

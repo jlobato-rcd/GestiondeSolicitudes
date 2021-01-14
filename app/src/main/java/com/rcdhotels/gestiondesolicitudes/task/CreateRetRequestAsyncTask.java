@@ -26,16 +26,13 @@ public class CreateRetRequestAsyncTask extends AsyncTask<Void, Void, Void> {
 
     @SuppressLint("StaticFieldLeak")
     private Context context;
-    private ArrayList<Material> items;
     private ProgressDialog dialog;
     private String headerTxt;
     private String stge_loc;
     private boolean error = false;
 
-    public CreateRetRequestAsyncTask(ArrayList<Material> items, String headerTxt, String stge_loc, Context context) {
-        this.items = items;
+    public CreateRetRequestAsyncTask(String headerTxt, Context context) {
         this.headerTxt = headerTxt;
-        this.stge_loc = stge_loc;
         this.context = context;
     }
 
@@ -44,35 +41,27 @@ public class CreateRetRequestAsyncTask extends AsyncTask<Void, Void, Void> {
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 
     @SuppressLint("SimpleDateFormat")
     @Override
     protected Void doInBackground(Void... voids) {
-        Request request = new Request();
-        request.setTYPE(0);
-        request.setSTATUS(1);
-        request.setCONF(0);
-        request.setREQ_USER(user.getUserName());
-        request.setPLANT(user.getHotel().getIdSociety());
-        request.setHEADER_TXT(headerTxt);
-        request.setMOVE_STLOC(stge_loc);
-        request.setSTGE_LOC(items.get(0).getSTGE_LOC());
-        request.setCREATED_DATE(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        request.setMaterials(items);
-        for (int i = 0; i < items.size(); i++) {
-            request.setTOTAL_VERPR(request.getTOTAL_VERPR() + items.get(i).getVERPR() * items.get(i).getREQ_QNT());
+        UtilsClass.currentRequest.setHEADER_TXT(headerTxt);
+        UtilsClass.currentRequest.setCREATED_DATE(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        for (int i = 0; i < UtilsClass.currentRequest.getMaterials().size(); i++) {
+            UtilsClass.currentRequest.setTOTAL_VERPR(UtilsClass.currentRequest.getTOTAL_VERPR() + UtilsClass.currentRequest.getMaterials().get(i).getVERPR() * UtilsClass.currentRequest.getMaterials().get(i).getREQ_QNT());
         }
-        request = insertRequest(request);
-        if (request.getIDREQUEST() > 0){
-            for (int i = 0; i < request.getMaterials().size(); i++) {
-                request.getMaterials().get(i).setPOSNR(i+1);
-                request.getMaterials().get(i).setIDREQUEST(request.getIDREQUEST());
-                request.getMaterials().set(i, insertMaterial(request.getMaterials().get(i)));
+        insertRequest();
+        if (UtilsClass.currentRequest.getIDREQUEST() > 0){
+            for (int i = 0; i < UtilsClass.currentRequest.getMaterials().size(); i++) {
+                UtilsClass.currentRequest.getMaterials().get(i).setPOSNR(i+1);
+                UtilsClass.currentRequest.getMaterials().get(i).setIDREQUEST(UtilsClass.currentRequest.getIDREQUEST());
+                UtilsClass.currentRequest.getMaterials().set(i, insertMaterial(UtilsClass.currentRequest.getMaterials().get(i)));
             }
         }
-        sendEmail(getEmailsToNotify(user.getWarehouse(), "GS_AUTOR1"), context.getString(R.string.app_name), context.getString(R.string.body_email) +" "+ request.getIDREQUEST(), context);
+        sendEmail(getEmailsToNotify(user.getWarehouse(), "GS_AUTOR1"), context.getString(R.string.app_name), context.getString(R.string.body_email) +" "+ UtilsClass.currentRequest.getIDREQUEST(), context);
         return null;
     }
 
@@ -80,7 +69,6 @@ public class CreateRetRequestAsyncTask extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         dialog.dismiss();
-        UtilsClass.materialsToProcess = null;
         ((Activity)context).setResult(Activity.RESULT_OK, new Intent());
         ((Activity)context).overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         ((Activity)context).finish();

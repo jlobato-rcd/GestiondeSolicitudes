@@ -8,12 +8,7 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         android:title="@string/search_hint" />
     <item
-        android:id="@+id/action_date"
-        android:icon="@drawable/ic_menu_date"
-        android:title="@string/date_filter"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_status_filter"
+        android:id="@+id/action_filter"
         android:icon="@drawable/ic_menu_filter_list"
         app:showAsAction="ifRoom"
         android:title="@string/filter" />

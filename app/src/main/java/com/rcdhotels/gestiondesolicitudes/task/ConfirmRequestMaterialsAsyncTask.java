@@ -43,6 +43,7 @@ public class ConfirmRequestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -50,18 +51,11 @@ public class ConfirmRequestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
     protected Void doInBackground(Void... voids) {
         Request request = getRequestById(materials.get(0).getIDREQUEST());
         request.setMaterials(materials);
-        boolean canBeProcess = false;
-        for (int i = 0; i < request.getMaterials().size(); i++) {
-            if (request.getMaterials().get(i).getSTATUS_CONF() == 1 && request.getMaterials().get(i).getREQ_QNT() == request.getMaterials().get(i).getQNT_TO_CONF()){
-                canBeProcess = true;
-                break;
-            }
-        }
-        if (canBeProcess)
-            request = processRequest(request);
+
+        request = processRequest(request);
 
         for (int i = 0; i < request.getMaterials().size(); i++) {
-            if (request.getMaterials().get(i).getSTATUS_CONF() == 0 || request.getMaterials().get(i).getREQ_QNT() != request.getMaterials().get(i).getREQ_QNT()) {
+            if (request.getMaterials().get(i).getSTATUS_CONF() == 0 && request.getMaterials().get(i).getDELETE() == 0) {
                 request.setCONF(2);
                 request.setSTATUS(5);
                 sendEmail(getEmailsToNotify(request.getSTGE_LOC(), "GS_PROCE"), context.getString(R.string.app_name), context.getString(R.string.body_email7) + " " + request.getIDREQUEST(), context);
@@ -70,14 +64,7 @@ public class ConfirmRequestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
         }
 
         if (request.getSTATUS() != 5){
-            boolean found = false;
-            for (int i = 0; i < request.getMaterials().size(); i++) {
-                if (request.getMaterials().get(i).getPROCESSED() == 2){
-                    found = true;
-                    break;
-                }
-            }
-            if (found) {
+            if (request.getSTATUS() == 6){
                 request.setSTATUS(6);
                 sendEmail(getEmailUserToNotify(request.getREQ_USER()), context.getString(R.string.app_name), context.getString(R.string.body_email4) + " " + request.getIDREQUEST(), context);
             }
@@ -87,6 +74,7 @@ public class ConfirmRequestMaterialsAsyncTask extends AsyncTask<Void, Void, Void
                 sendEmail(getEmailUserToNotify(request.getREQ_USER()), context.getString(R.string.app_name), context.getString(R.string.body_email5) + " " + request.getIDREQUEST(), context);
             }
         }
+
         updateRequest(request);
         JSONArray jsonArray = new JSONArray();
         for (int i = 0; i < request.getMaterials().size(); i++) {

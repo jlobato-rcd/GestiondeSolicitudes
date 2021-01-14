@@ -4,19 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,28 +20,22 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.login.LoginActivity;
 import com.rcdhotels.gestiondesolicitudes.model.Warehouse;
-import com.rcdhotels.gestiondesolicitudes.settings.SettingsActivity;
-import com.rcdhotels.gestiondesolicitudes.task.GetWarehouseCatalogAsyncTask;
-import com.rcdhotels.gestiondesolicitudes.ui.activities.ExtMaterialSelectionActivity;
-import com.rcdhotels.gestiondesolicitudes.ui.activities.RetMaterialSelectionActivity;
-import com.rcdhotels.gestiondesolicitudes.utils.PreferencesLanguages;
+import com.rcdhotels.gestiondesolicitudes.task.UpdateWarehouseAsyncTask;
 
 import java.util.ArrayList;
 
 import static com.rcdhotels.gestiondesolicitudes.database.HotelsTableQuerys.getHotel;
-import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.UpdateUserWarehouse;
 import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.deleteUser;
 import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.getUserLogged;
-import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findWarehouseById;
 import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findAllWarehouses;
-import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.*;
-import static com.rcdhotels.gestiondesolicitudes.utils.PreferencesLanguages.checkLanguage;
+import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findWarehouseById;
+import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.resetUtilsValues;
+import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.user;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -75,18 +61,22 @@ public class MainActivity extends AppCompatActivity{
         final NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_extraction, R.id.nav_return, R.id.nav_warehouse)
-                .setDrawerLayout(drawer)
-                .build();
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_extraction, R.id.nav_return, R.id.nav_warehouse).setDrawerLayout(drawer).build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
         View headerView = navigationView.getHeaderView(0);
         TextView navUsername = headerView.findViewById(R.id.textViewFullName);
         navUsername.setText(new StringBuilder().append(user.getFirstname()).append(" ").append(user.getSecondName()).append(" ").append(user.getSurName()).append(" ").append(user.getSecondSurName()).toString());
-        new GetWarehouseCatalogAsyncTask(headerView, context).execute();
+        Warehouse warehouse = findWarehouseById(user.getWarehouse(), context);
 
         TextView textViewWarehouse = headerView.findViewById(R.id.textViewWarehouse);
+        if (!user.getRole().equalsIgnoreCase("GS_AUTOR2") && !user.getRole().equalsIgnoreCase("GS_AUTOR3") && !user.getRole().equalsIgnoreCase("GS_REPRO")) {
+            textViewWarehouse.setText(warehouse.getStgeLoc() + " - " + warehouse.getLgobe());
+        }
+        else{
+            textViewWarehouse.setText(user.getHotel().getNameHotel());
+        }
 
         Menu menu = navigationView.getMenu();
         if (user.getRole().equalsIgnoreCase("GS_SOLIC2")){
@@ -103,8 +93,7 @@ public class MainActivity extends AppCompatActivity{
                 builder.setTitle(R.string.select_warehouse);
                 builder.setItems(array, (dialog, which) -> {
                     user.setWarehouse(warehouses.get(which).getStgeLoc());
-                    long affectedRow = UpdateUserWarehouse(context);
-                    textViewWarehouse.setText(warehouses.get(which).getStgeLoc() + " - " + warehouses.get(which).getLgobe());
+                    new UpdateWarehouseAsyncTask(MainActivity.this, textViewWarehouse, warehouses.get(which)).execute();
                 });
                 builder.show();
                 return false;
@@ -118,6 +107,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public void signOut() {
+        resetUtilsValues();
         deleteUser(MainActivity.this);
         SharedPreferences.Editor editor = context.getSharedPreferences("Preferences_GS", MODE_PRIVATE).edit();
         editor.putBoolean("isLogged", false);
@@ -140,6 +130,7 @@ public class MainActivity extends AppCompatActivity{
                 || super.onSupportNavigateUp();
     }
 
+    @SuppressLint("ResourceType")
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -153,8 +144,7 @@ public class MainActivity extends AppCompatActivity{
             } else {
                 doubleBackToExitPressedOnce = true;
                 View parentLayout = findViewById(android.R.id.content);
-                Snackbar.make(parentLayout, R.string.exit_message, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(parentLayout, R.string.exit_message, Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 new Handler().postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
             }
         }

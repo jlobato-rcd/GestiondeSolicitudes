@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.interfaces.ItemClickListener;
 import com.rcdhotels.gestiondesolicitudes.model.Material;
+import com.rcdhotels.gestiondesolicitudes.model.Request;
 import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 
 import java.util.ArrayList;
@@ -68,29 +69,19 @@ public class MatSelRecyclerViewAdapter extends RecyclerView.Adapter<MatSelRecycl
         viewHolder.editTextEntryUom.setText(material.getENTRY_UOM());
         if (findMaterial(material.getMATERIAL()))
             viewHolder.checkBoxSelected.setChecked(true);
+        else
+            viewHolder.checkBoxSelected.setChecked(false);
         viewHolder.setClickListener((view, position1, isLongClick) -> {
             if (!isLongClick) {
-                if (UtilsClass.materialsToProcess == null || UtilsClass.materialsToProcess.isEmpty()){
-                    UtilsClass.materialsToProcess = new ArrayList<>();
-                    material.setChecked(true);
-                    viewHolder.checkBoxSelected.setChecked(true);
-                    UtilsClass.materialsToProcess.add(material);
-                }
-                else if (!findMaterial(material.getMATERIAL())){
-                    if (UtilsClass.materialsToProcess.get(0).getSTGE_LOC().equalsIgnoreCase(material.getSTGE_LOC())){
-                        material.setChecked(true);
-                        viewHolder.checkBoxSelected.setChecked(true);
-                        UtilsClass.materialsToProcess.add(material);
-                    }
-                    else{
-                        Toast.makeText(mContext, R.string.materials_selection_message, Toast.LENGTH_SHORT).show();
-                    }
-
-                }
-                else {
+                if(findMaterial(material.getMATERIAL())){
                     material.setChecked(false);
                     viewHolder.checkBoxSelected.setChecked(false);
-                    UtilsClass.materialsToProcess.remove(material);
+                    UtilsClass.currentRequest.getMaterials().remove(material);
+                }
+                else{
+                    material.setChecked(true);
+                    viewHolder.checkBoxSelected.setChecked(true);
+                    UtilsClass.currentRequest.getMaterials().add(material);
                 }
             }
         });
@@ -108,7 +99,8 @@ public class MatSelRecyclerViewAdapter extends RecyclerView.Adapter<MatSelRecycl
 
             if (constraint == null || constraint.length() == 0) {
                 filteredList.addAll(arrayList);
-            } else {
+            }
+            else {
                 String filterPattern = constraint.toString().toLowerCase().trim();
 
                 for (Material material : arrayList) {

@@ -1,7 +1,6 @@
 package com.rcdhotels.gestiondesolicitudes.services;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Base64;
 
 import com.rcdhotels.gestiondesolicitudes.R;
@@ -10,6 +9,7 @@ import com.rcdhotels.gestiondesolicitudes.model.Hotel;
 import com.rcdhotels.gestiondesolicitudes.model.Material;
 import com.rcdhotels.gestiondesolicitudes.model.Request;
 import com.rcdhotels.gestiondesolicitudes.model.User;
+import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,12 +22,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static android.content.Context.MODE_PRIVATE;
 import static com.rcdhotels.gestiondesolicitudes.connection.ConnectionConfig.getClient;
 import static com.rcdhotels.gestiondesolicitudes.connection.ConnectionConfig.hanaHost;
 import static com.rcdhotels.gestiondesolicitudes.connection.ConnectionConfig.hanaUserPass;
-import static com.rcdhotels.gestiondesolicitudes.database.HotelsTableQuerys.getHotel;
-import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.InsertUser;
 import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.user;
 
 public class XSJSServices {
@@ -82,7 +79,7 @@ public class XSJSServices {
     public static User LoginUser(String userName, String password, String idHotel){
 
         try {
-            String url = hanaHost + "Food_Processing/INFUSER.xsjs?userName="+userName+"&password="+password+"&idHotel="+idHotel+"&idSistema=PA";
+            String url = hanaHost + "Request_Management/INFUSER.xsjs?userName="+userName+"&password="+password+"&idHotel="+idHotel+"&idSistema=GS";
 
             OkHttpClient client = getClient();
             String basicAuth = "Basic " + new String(Base64.encode(hanaUserPass.getBytes(), 0));
@@ -115,7 +112,8 @@ public class XSJSServices {
                 user.setCreatedDate(jsonObject.getString("createdDate"));
                 user.setRole(jsonObject.getString("role"));
                 user.setWarehouse(jsonObject.getString("warehouse"));
-                if (user.getWarehouse().equalsIgnoreCase("null")){
+
+                if (!user.getRole().equalsIgnoreCase("GS_AUTOR2") && !user.getRole().equalsIgnoreCase("GS_AUTOR3") && user.getWarehouse().equalsIgnoreCase("null")){
                     user.setWarehouse("ACYP");
                 }
             }
@@ -126,13 +124,38 @@ public class XSJSServices {
         return user;
     }
 
-    public static Request insertRequest(Request request){
+    public static int updateWarehouse(){
+        int affectedRows = 0;
+        try {
+            String url = hanaHost + "Request_Management/UPDATEUSERWAREHOUSE.xsjs?userName="+user.getUserName()+"&warehouse="+user.getWarehouse();
+            OkHttpClient client = getClient();
+            String basicAuth = "Basic " + new String(Base64.encode(hanaUserPass.getBytes(), 0));
+            basicAuth = basicAuth.substring(0, basicAuth.length() - 1);
+
+            okhttp3.Request httpRequest = new okhttp3.Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Authorization", basicAuth)
+                    .build();
+
+            Response response = client.newCall(httpRequest).execute();
+            String responseXML = response.body().string();
+            affectedRows = Integer.parseInt(responseXML);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return affectedRows;
+    }
+
+    public static void insertRequest(){
 
         try {
             String url = hanaHost + "/Request_Management/INSERTREQUEST.xsjs";
             OkHttpClient client = getClient();
             MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-            RequestBody body = RequestBody.create(mediaType, request.toString());
+            RequestBody body = RequestBody.create(mediaType, UtilsClass.currentRequest.toString());
 
             String basicAuth = "Basic " + new String(Base64.encode(hanaUserPass.getBytes(), 0));
             basicAuth = basicAuth.substring(0, basicAuth.length() - 1);
@@ -146,12 +169,11 @@ public class XSJSServices {
 
             Response response = client.newCall(httpRequest).execute();
             String responseXML = response.body().string();
-            request.setIDREQUEST(Integer.parseInt(responseXML));
+            UtilsClass.currentRequest.setIDREQUEST(Integer.parseInt(responseXML));
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        return request;
     }
 
     public static int updateRequest(Request request){
@@ -160,7 +182,6 @@ public class XSJSServices {
         try {
             String url = hanaHost + "/Request_Management/UPDATEREQUEST.xsjs";
             OkHttpClient client = getClient();
-            //OkHttpClient client = new OkHttpClient();
             MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(mediaType, request.toString());
 
@@ -184,11 +205,11 @@ public class XSJSServices {
         return affectedRow;
     }
 
-    public static int authorizeRequest(int status, int release, int idRequest){
+    public static int authorizeRequest(float totalVerpr, int status, int release, int idRequest){
 
         int affectedRow = 0;
         try {
-            String url = hanaHost + "/Request_Management/AUTHORIZEREQUEST.xsjs?status="+status+"&release="+release+"&idrequest="+idRequest;
+            String url = hanaHost + "/Request_Management/AUTHORIZEREQUEST.xsjs?totalVerpr="+totalVerpr+"&status="+status+"&release="+release+"&idrequest="+idRequest;
             OkHttpClient client = getClient();
             MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(mediaType, "");
@@ -213,7 +234,7 @@ public class XSJSServices {
         return affectedRow;
     }
 
-    public static int rejectRequest(int status, String reasons , int idRequest){
+    public static int rejectRequest(int status, String reasons, int idRequest){
 
         int affectedRow = 0;
         try {
@@ -285,17 +306,33 @@ public class XSJSServices {
         return request;
     }
 
-    public static ArrayList<Request> getRequestList(int type, String date, int status){
+    public static ArrayList<Request> getRequestList(int type, String dateFrom, String dateTo, int status, String stgeloc, String movestloc, String matType){
 
         ArrayList<Request> requests = null;
+
         try {
-            String url = hanaHost + "/Request_Management/GETREQUESTLIST.xsjs?user="+ user.getUserName()+
-                    "&idSociety="+user.getHotel().getIdSociety()+
-                    "&warehouse="+user.getWarehouse()+
-                    "&type="+type+
-                    "&role="+user.getRole()+
-                    "&date="+date+
-                    "&status="+status;
+            String url;
+            if (user.getRole().equalsIgnoreCase("GS_PROCE") || user.getRole().equalsIgnoreCase("GS_REPRO")){
+                url = hanaHost + "/Request_Management/GETREQUESTLIST.xsjs?idSociety="+user.getHotel().getIdSociety()+
+                        "&type="+type+
+                        "&dateFrom="+dateFrom+
+                        "&dateTo="+dateTo+
+                        "&status="+status+
+                        "&movestloc="+stgeloc+
+                        "&stgeloc="+movestloc+
+                        "&matType="+matType;
+            }
+            else {
+                url = hanaHost + "/Request_Management/GETREQUESTLIST.xsjs?idSociety="+user.getHotel().getIdSociety()+
+                        "&type="+type+
+                        "&dateFrom="+dateFrom+
+                        "&dateTo="+dateTo+
+                        "&status="+status+
+                        "&movestloc="+movestloc+
+                        "&stgeloc="+stgeloc+
+                        "&matType="+matType;
+            }
+
             OkHttpClient client = getClient();
             String basicAuth = "Basic " + new String(Base64.encode(hanaUserPass.getBytes(), 0));
             basicAuth = basicAuth.substring(0, basicAuth.length() - 1);
@@ -366,35 +403,6 @@ public class XSJSServices {
         }
         return material;
     }
-
-    /*public static int updateMaterial(Material material){
-
-        int affectedRow = 0;
-        try {
-            String url = hanaHost + "/Request_Management/UPDATEMATERIAL.xsjs";
-            OkHttpClient client = getClient();
-            MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-            RequestBody body = RequestBody.create(mediaType, material.toString());
-
-            String basicAuth = "Basic " + new String(Base64.encode(hanaUserPass.getBytes(), 0));
-            basicAuth = basicAuth.substring(0, basicAuth.length() - 1);
-
-            okhttp3.Request httpRequest = new okhttp3.Request.Builder()
-                    .url(url)
-                    .post(body)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Authorization", basicAuth)
-                    .build();
-
-            Response response = client.newCall(httpRequest).execute();
-            String responseXML = response.body().string();
-            affectedRow = Integer.parseInt(responseXML);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return affectedRow;
-    }*/
 
     public static int updateMaterialList(JSONArray jsonArray){
 

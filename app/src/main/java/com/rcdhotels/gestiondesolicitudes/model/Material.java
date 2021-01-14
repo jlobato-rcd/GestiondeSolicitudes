@@ -23,6 +23,7 @@ public class Material {
     private String STGE_LOC;
     private float LABST;
     private boolean isChecked;
+    private String MTART;
 
     public int getIDMATERIAL() {
         return IDMATERIAL;
@@ -177,6 +178,7 @@ public class Material {
                 ", \"PROCESSED\":" + PROCESSED +
                 ", \"PSTNG_DATE\":\"" + PSTNG_DATE + "\"" +
                 ", \"MATERIALDOCUMENT\":\"" + MATERIALDOCUMENT + "\"" +
+                ", \"MTART\":\"" + MTART + "\"" +
                 ", \"MATDOCUMENTYEAR\":" + MATDOCUMENTYEAR +
                 ", \"LABST\":" + LABST +
                 ", \"DELETE\":" + DELETE + "}";
@@ -196,5 +198,13 @@ public class Material {
 
     public void setSTGE_LOC(String STGE_LOC) {
         this.STGE_LOC = STGE_LOC;
+    }
+
+    public String getMTART() {
+        return MTART;
+    }
+
+    public void setMTART(String MTART) {
+        this.MTART = MTART;
     }
 }

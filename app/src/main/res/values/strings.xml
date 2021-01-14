@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Gestión de Solicitudes de Traspasos</string>
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
@@ -18,18 +18,17 @@
     <string name="user">User</string>
     <string name="welcome">Welcome!</string>
     <string name="connection_failed">Connection failed</string>
-    <string name="login_error">This user does not have permissions on this property</string>
+    <string name="user_has_no_permissions">You has no assigned role or permissions for this property</string>
     <string name="empty_fields">Enter username and password</string>
     <string name="select">Select</string>
     <string name="spanish">Spanish</string>
     <string name="english">English</string>
-    <string name="version_app"> 1.0 </string>
     <string name="profile">Profile</string>
     <string name="exit_message">Please click back again to exit</string>
 
     <string name="language">Language</string>
     <string name="property">Property</string>
-    <string name="select_warehouse">Select warehouse</string>
+    <string name="select_warehouse">Select requesting warehouse</string>
     <string name="menu_warehouse">Warehouse</string>
     <string name="stock">Stock</string>
     <string name="menu_confirm">Confirm</string>
@@ -70,7 +69,7 @@
     <string name="error_while_updating_data">An error occurred while updating the data</string>
     <string name="request">Request</string>
     <string name="check_to_delete">Check to delete</string>
-    <string name="requested">requested</string>
+    <string name="requested">Requested</string>
     <string name="confirmed">Confirmed</string>
     <string name="warehouse_message">Select a warehouse to continue</string>
     <string name="req_qnt_exceeded1">The quantity of cannot be greater than</string>
@@ -114,4 +113,46 @@
     <string name="cannot_be_selected_request">This request cannot be selected</string>
     <string name="level">Level</string>
     <string name="selected">Selected</string>
+    <string name="warehouse_download_failed">Could not download the warehouse catalog, restart the application</string>
+    <string name="exit">Exit</string>
+    <string name="category">Category</string>
+    <string name="material_type">Type of material</string>
+    <string name="general">General</string>
+    <string name="restaurants">Restaurants</string>
+    <string name="pubs">Pubs</string>
+    <string name="common">Common</string>
+    <string name="shops">Shops</string>
+    <string name="golf">Golf</string>
+    <string name="others">Others</string>
+    <string name="foods">foods</string>
+    <string name="drinks">Drinks</string>
+    <string name="cuts">cuts</string>
+    <string name="operation_team">Operation Team</string>
+    <string name="maintenance">Maintenance</string>
+    <string name="stationery">Stationery</string>
+    <string name="supplies">Supplies</string>
+    <string name="category_messge">Select a category</string>
+    <string name="material_type_message">Select a type of material to continue</string>
+    <string name="status">Status</string>
+    <string name="all">All</string>
+    <string name="user_not_found">User not found</string>
+    <string name="user_has_no_warehouse">You does not have assigned warehouse</string>
+    <string name="requesting_warehouse">Requesting warehouse</string>
+    <string name="supplier_warehouse">Supplier warehouse</string>
+    <string name="amount">"Amount: "</string>
+    <string name="materials_delete_message">Unable to remove all materials from the application</string>
+    <string name="request_authorize_messge">The request could not be authorized</string>
+
+    <string name="mtrl_picker_range_header_title" tools:override="true">Select a date range</string>
+    <string name="mtrl_picker_range_header_unselected" tools:override="true">Select a date range</string>
+    <string name="mtrl_picker_range_header_only_start_selected" tools:override="true">%s - End date</string>
+    <string name="mtrl_picker_range_header_only_end_selected" tools:override="true">Start date - %s</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint" tools:override="true">Start date</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint" tools:override="true">End date</string>
+    <string name="mtrl_picker_text_input_date_format" tools:override="true">dd/MM/yy</string>
+    <string name="mtrl_picker_out_of_range" tools:override="true">You have exceeded the valid range: %1$s</string>
+    <string name="mtrl_picker_invalid_format" tools:override="true">Invalid date format. Use: %1$s</string>
+    <string name="mtrl_picker_save" tools:override="true">Save</string>
+    <string name="fromDate">From</string>
+    <string name="toDate">To</string>
 </resources>

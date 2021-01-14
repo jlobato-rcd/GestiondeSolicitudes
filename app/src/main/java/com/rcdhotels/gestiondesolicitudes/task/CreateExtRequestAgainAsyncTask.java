@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 
 import com.rcdhotels.gestiondesolicitudes.R;
 import com.rcdhotels.gestiondesolicitudes.model.Request;
+import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 import com.rcdhotels.gestiondesolicitudes.model.Warehouse;
 
 import java.text.SimpleDateFormat;
@@ -39,29 +40,31 @@ public class CreateExtRequestAgainAsyncTask extends AsyncTask<Void, Void, Void> 
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 
     @SuppressLint("SimpleDateFormat")
     @Override
     protected Void doInBackground(Void... voids) {
-        Request request = getRequestById(idRequest);
-        request.setSTATUS(1);
-        request.setREQ_USER(user.getUserName());
-        request.setCREATED_DATE(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        request.setMaterials(getResquestMaterialList(idRequest));
+        UtilsClass.currentRequest = getRequestById(idRequest);
+        UtilsClass.currentRequest.setSTATUS(1);
+        UtilsClass.currentRequest.setREQ_USER(user.getUserName());
+        UtilsClass.currentRequest.setCREATED_DATE(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        UtilsClass.currentRequest.setMaterials(getResquestMaterialList(idRequest));
         Warehouse warehouse = findWarehouseById(user.getWarehouse(), context);
         if (warehouse.getConf() != null && !warehouse.getConf().isEmpty())
-            request.setCONF(1);
+            UtilsClass.currentRequest.setCONF(1);
         else
-            request.setCONF(0);
-        request = insertRequest(request);
-        if (request.getIDREQUEST() > 0){
-            for (int i = 0; i < request.getMaterials().size(); i++) {
-                request.getMaterials().get(i).setIDREQUEST(request.getIDREQUEST());
-                request.getMaterials().set(i, insertMaterial(request.getMaterials().get(i)));
+            UtilsClass.currentRequest.setCONF(0);
+        insertRequest();
+        if (UtilsClass.currentRequest.getIDREQUEST() > 0){
+            for (int i = 0; i < UtilsClass.currentRequest.getMaterials().size(); i++) {
+                UtilsClass.currentRequest.getMaterials().get(i).setIDREQUEST(UtilsClass.currentRequest.getIDREQUEST());
+                UtilsClass.currentRequest.getMaterials().set(i, insertMaterial(UtilsClass.currentRequest.getMaterials().get(i)));
             }
-            sendEmail(getEmailsToNotify(user.getWarehouse(), "GS_AUTOR1"), context.getString(R.string.app_name), context.getString(R.string.body_email) +" "+ request.getIDREQUEST(), context);
+            sendEmail(getEmailsToNotify(user.getWarehouse(), "GS_AUTOR1"), context.getString(R.string.app_name), context.getString(R.string.body_email) +" "+ UtilsClass.currentRequest.getIDREQUEST(), context);
+            UtilsClass.currentRequest = null;
         }
         return null;
     }

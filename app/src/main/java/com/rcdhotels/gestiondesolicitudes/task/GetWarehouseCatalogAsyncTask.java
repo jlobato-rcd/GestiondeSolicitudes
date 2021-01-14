@@ -3,8 +3,10 @@ package com.rcdhotels.gestiondesolicitudes.task;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,10 +29,8 @@ public class GetWarehouseCatalogAsyncTask extends AsyncTask<Void, Void, Void> {
     @SuppressLint("StaticFieldLeak")
     private Context context;
     private ArrayList<Warehouse> warehouses;
-    private View headerView;
 
-    public GetWarehouseCatalogAsyncTask(View headerView, Context context) {
-        this.headerView = headerView;
+    public GetWarehouseCatalogAsyncTask(Context context) {
         this.context = context;
     }
 
@@ -42,22 +42,28 @@ public class GetWarehouseCatalogAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... voids) {
         warehouses = GetWarehouseCatalog();
-        Collections.sort(warehouses,(p1, p2) -> p1.getLgobe().compareTo(p2.getLgobe()));
-        deleteAllWarehouses(context);
-        insertWarehouses(warehouses, context);
+        if (warehouses != null){
+            Collections.sort(warehouses,(p1, p2) -> p1.getLgobe().compareTo(p2.getLgobe()));
+            deleteAllWarehouses(context);
+            insertWarehouses(warehouses, context);
+        }
         return null;
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-        if (warehouses == null)
-            ((Activity)context).runOnUiThread(() -> Toast.makeText(context,  context.getResources().getString(R.string.connection_failed), Toast.LENGTH_LONG).show());
-        else{
-            Warehouse warehouse = findWarehouseById(user.getWarehouse(), context);
-            TextView textViewWarehouse = headerView.findViewById(R.id.textViewWarehouse);
-            textViewWarehouse.setText(warehouse.getStgeLoc() + " - " + warehouse.getLgobe());
-            ((Activity)context).runOnUiThread(() -> Toast.makeText(context,  context.getResources().getString(R.string.wharehouses_updated), Toast.LENGTH_LONG).show());
+        if (warehouses == null) {
+            Button buttonExit = ((Activity) context).findViewById(R.id.buttonExit);
+            buttonExit.setVisibility(View.VISIBLE);
+            ((Activity) context).runOnUiThread(() -> Toast.makeText(context, context.getResources().getString(R.string.warehouse_download_failed), Toast.LENGTH_LONG).show());
+        }
+        else {
+            Toast.makeText(context, R.string.welcome,Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(context, MainActivity.class);
+            context.startActivity(intent);
+            ((Activity) context).overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+            ((Activity) context).finish();
         }
     }
 }

@@ -8,16 +8,26 @@ public class UtilsClass {
     public static boolean enableMenu;
     public static String currentFragment;
     public static ArrayList<Material> materialsArrayList;
-    public static ArrayList<Material> materialsToProcess;
     public static Request currentRequest;
+    public static ArrayList<Request> requestArrayList;
 
     public static boolean findMaterial(int material){
-        if (materialsToProcess != null){
-            for (int i = 0; i < materialsToProcess.size(); i++) {
-                if (materialsToProcess.get(i).getMATERIAL() == material)
-                    return true;
+        if (currentRequest != null){
+            if (currentRequest.getMaterials() != null){
+                for (int i = 0; i < currentRequest.getMaterials().size(); i++) {
+                    if (currentRequest.getMaterials().get(i).getMATERIAL() == material)
+                        return true;
+                }
             }
         }
         return false;
+    }
+
+    public static void resetUtilsValues(){
+        user = null;
+        enableMenu = false;
+        currentFragment = null;
+        materialsArrayList = null;
+        currentRequest = null;
     }
 }

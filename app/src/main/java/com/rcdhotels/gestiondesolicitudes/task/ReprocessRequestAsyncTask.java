@@ -14,11 +14,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findWarehouseById;
+import static com.rcdhotels.gestiondesolicitudes.model.UtilsClass.user;
 import static com.rcdhotels.gestiondesolicitudes.services.XSJSServices.getEmailUserToNotify;
 import static com.rcdhotels.gestiondesolicitudes.services.XSJSServices.getResquestMaterialList;
 import static com.rcdhotels.gestiondesolicitudes.services.XSJSServices.updateMaterialList;
@@ -42,6 +41,7 @@ public class ReprocessRequestAsyncTask extends AsyncTask<Void, Void, Void> {
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 
@@ -102,11 +102,13 @@ public class ReprocessRequestAsyncTask extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         dialog.dismiss();
-        @SuppressLint("SimpleDateFormat")
-        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        int status = -1;
+        if (user.getRole().equalsIgnoreCase("GS_REPRO")){
+            status = 6;
+        }
         if (UtilsClass.currentFragment.equalsIgnoreCase("Extraction"))
-            new GetExtRequestAsyncTask(context, date, -1).execute();
+            new GetExtRequestAsyncTask(context, "", "", status, "", user.getWarehouse(), "").execute();
         else
-            new GetRetRequestAsyncTask(context, date, -1).execute();
+            new GetRetRequestAsyncTask(context, "", "", status, user.getWarehouse(), "", "").execute();
     }
 }

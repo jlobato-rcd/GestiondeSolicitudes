@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="category">
+        <item>@string/select</item>
+        <item>@string/general</item>
+        <item>@string/restaurants</item>
+        <item>@string/pubs</item>
+        <item>@string/common</item>
+        <item>@string/shops</item>
+        <item>@string/golf</item>
+        <item>@string/others</item>
+    </string-array>
+</resources>

@@ -37,6 +37,7 @@ public class GetReqDetailsAsyncTask extends AsyncTask<Void, Void, Void> {
         super.onPreExecute();
         dialog = new ProgressDialog(context);
         dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
         dialog.show();
     }
 

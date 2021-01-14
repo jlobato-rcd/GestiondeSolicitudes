@@ -7,6 +7,7 @@ public class Warehouse {
     private String Zsumi;
     private String Stock0;
     private String Conf;
+    private String StgeLocType;
 
     public String getStgeLoc() {
         return StgeLoc;
@@ -48,12 +49,12 @@ public class Warehouse {
         Conf = conf;
     }
 
-    public Warehouse(String stgeLoc, String lgobe, String zsumi, String stock0, String conf) {
-        StgeLoc = stgeLoc;
-        Lgobe = lgobe;
-        Zsumi = zsumi;
-        Stock0 = stock0;
-        Conf = conf;
+    public String getStgeLocType() {
+        return StgeLocType;
+    }
+
+    public void setStgeLocType(String stgeLocType) {
+        StgeLocType = stgeLocType;
     }
 
     public Warehouse() {

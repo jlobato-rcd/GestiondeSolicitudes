@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="menu_settings">Configuración</string>
     <string name="menu_logout">Cerrar Sessión</string>
     <string name="logo">Logotipo</string>
@@ -8,17 +8,16 @@
     <string name="user">Usuario</string>
     <string name="welcome">Bienvenido!</string>
     <string name="connection_failed">Conexión fallida</string>
-    <string name="login_error">Este usuario no tiene permisos en esta propiedad</string>
+    <string name="user_has_no_permissions">No tiene asignado rol o permisos para esta propiedad</string>
     <string name="empty_fields">Ingrese el usuario y la contraseña</string>
     <string name="select">Seleccione</string>
     <string name="spanish">Español</string>
     <string name="english">Inglés</string>
-    <string name="version_app"> 1.0 </string>
     <string name="profile">Perfil</string>
     <string name="exit_message">Por favor clic atrás otra vez para salir</string>
     <string name="language">Idioma</string>
     <string name="property">Propiedad</string>
-    <string name="select_warehouse">Seleccione almacén</string>
+    <string name="select_warehouse">Seleccione almacén solicitante</string>
     <string name="menu_warehouse">Almacén</string>
     <string name="menu_return">Solicitudes de devolución</string>
     <string name="menu_extraction">Solicitudes de extracción</string>
@@ -76,7 +75,7 @@
     <string name="confirmation">Confirmación</string>
     <string name="warning_reject_message">¿Está seguro que desea cancelar la solicitud?Presione aceptar para continuar.</string>
     <string name="cancel">Cancelar</string>
-    <string name="accept">Acceptar</string>
+    <string name="accept">Aceptar</string>
     <string name="rejection_text">Motivos de rechazo</string>
     <string name="date">"Fecha: "</string>
     <string name="menu_process">Procesar</string>
@@ -105,4 +104,46 @@
     <string name="cannot_be_selected_request">No se puede seleccionar esta solicitud</string>
     <string name="level">Nivel</string>
     <string name="selected">Seleccionados</string>
+    <string name="warehouse_download_failed">No se pudo descargar el catálogo de almacenes, reinicie la aplicación</string>
+    <string name="exit">Salir</string>
+    <string name="category">Categoría</string>
+    <string name="material_type">Tipo de material</string>
+    <string name="general">Generales</string>
+    <string name="restaurants">Restaurantes</string>
+    <string name="pubs">Bares</string>
+    <string name="common">Comunes</string>
+    <string name="shops">Tiendas</string>
+    <string name="golf">Golf</string>
+    <string name="others">Otros</string>
+    <string name="foods">Alimentos</string>
+    <string name="drinks">Bebidas</string>
+    <string name="cuts">Cortes</string>
+    <string name="operation_team">Equipo Operación</string>
+    <string name="maintenance">Mantenimiento</string>
+    <string name="stationery">Papelería</string>
+    <string name="supplies">Suministros</string>
+    <string name="category_messge">Seleccione una categoría</string>
+    <string name="material_type_message">Seleccione un tipo de material para continuar</string>
+    <string name="status">Estatus</string>
+    <string name="all">Todos</string>
+    <string name="user_not_found">Usuario no encontrado</string>
+    <string name="user_has_no_warehouse">No tiene almacen asignado</string>
+    <string name="requesting_warehouse">Almacén solicitante</string>
+    <string name="supplier_warehouse">Almacén suministrador</string>
+    <string name="amount">"Monto: "</string>
+    <string name="materials_delete_message">No se pueden eliminar todos los materiales de la solicitud</string>
+    <string name="request_authorize_messge">La solicitud no pudo ser autorizada</string>
+
+    <string name="mtrl_picker_range_header_title" tools:override="true">Seleccione un rango de fecha</string>
+    <string name="mtrl_picker_range_header_unselected" tools:override="true">Seleccione un rango de fecha</string>
+    <string name="mtrl_picker_range_header_only_start_selected" tools:override="true">%s - Fecha final</string>
+    <string name="mtrl_picker_range_header_only_end_selected" tools:override="true">Fecha inicial - %s</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint" tools:override="true">Fecha inicial</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint" tools:override="true">Fecha final</string>
+    <string name="mtrl_picker_text_input_date_format" tools:override="true">dd/MM/yy</string>
+    <string name="mtrl_picker_out_of_range" tools:override="true">Has superado el rango válido: %1$s</string>
+    <string name="mtrl_picker_invalid_format" tools:override="true">Formato de fecha no válido. Utilizar %1$s</string>
+    <string name="mtrl_picker_save" tools:override="true">Guardar</string>
+    <string name="fromDate">Desde</string>
+    <string name="toDate">Hasta</string>
 </resources>

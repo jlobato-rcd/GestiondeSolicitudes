@@ -22,21 +22,23 @@ import com.rcdhotels.gestiondesolicitudes.adapters.MatSelRecyclerViewAdapter;
 import com.rcdhotels.gestiondesolicitudes.model.Material;
 import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 import com.rcdhotels.gestiondesolicitudes.model.Warehouse;
-import com.rcdhotels.gestiondesolicitudes.task.GetMaterialsAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.task.GetExtMaterialsToSelectAsyncTask;
+import com.rcdhotels.gestiondesolicitudes.utils.Tools;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.findAllWarehouses;
 
 public class ExtMaterialSelectionActivity extends AppCompatActivity {
 
-    private SwipeRefreshLayout swipeLayout;
     private RecyclerView recyclerViewMaterials;
     private MatSelRecyclerViewAdapter matSelRecyclerViewAdapter;
     private String StgeLoc = "";
     private boolean stock0 = true;
     private int LAUNCH_MATERIALS_ACTIVITY = 1;
     private Button buttonGoToRequest;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +46,12 @@ public class ExtMaterialSelectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ext_materials_selection);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        swipeLayout = findViewById(R.id.swipe_container);
-        swipeLayout.setOnRefreshListener(() -> {
-            StgeLoc = "";
-            new GetMaterialsAsyncTask(1, ExtMaterialSelectionActivity.this).execute();
-        });
-        new GetMaterialsAsyncTask(1, ExtMaterialSelectionActivity.this).execute();
+
+        new GetExtMaterialsToSelectAsyncTask(getIntent().getStringExtra("WAREHOUSE"), getIntent().getStringExtra("MATTYPE"), ExtMaterialSelectionActivity.this).execute();
 
         buttonGoToRequest = findViewById(R.id.buttonGoToRequest);
         buttonGoToRequest.setOnClickListener(v -> {
-            if (UtilsClass.materialsToProcess != null && !UtilsClass.materialsToProcess.isEmpty()){
+            if (UtilsClass.currentRequest.getMaterials() != null && !UtilsClass.currentRequest.getMaterials().isEmpty()){
                 startActivityForResult(new Intent(ExtMaterialSelectionActivity.this, ExtRequestActivity.class), LAUNCH_MATERIALS_ACTIVITY);
                 overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
             }
@@ -77,11 +75,18 @@ public class ExtMaterialSelectionActivity extends AppCompatActivity {
         MenuItem searchItem = menu.findItem(R.id.action_search);
         recyclerViewMaterials = findViewById(R.id.recyclerViewMaterials);
         matSelRecyclerViewAdapter = (MatSelRecyclerViewAdapter) recyclerViewMaterials.getAdapter();
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView = (SearchView) searchItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                if (recyclerViewMaterials == null)
+                    recyclerViewMaterials = findViewById(R.id.recyclerViewMaterials);
+                else if (matSelRecyclerViewAdapter == null)
+                    matSelRecyclerViewAdapter = (MatSelRecyclerViewAdapter) recyclerViewMaterials.getAdapter();
+                else {
+                    matSelRecyclerViewAdapter.getFilter().filter(query);
+                }
+                return true;
             }
 
             @Override
@@ -108,47 +113,12 @@ public class ExtMaterialSelectionActivity extends AppCompatActivity {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
         }
-        if (item.getItemId() == R.id.action_filter){
-            ArrayList<Warehouse> warehouses = findAllWarehouses(ExtMaterialSelectionActivity.this);
-            String[] array = new String[warehouses.size()];
-            for (int i = 0; i < warehouses.size(); i++) {
-                array[i] = warehouses.get(i).getLgobe();
-            }
-            AlertDialog.Builder builder = new AlertDialog.Builder(ExtMaterialSelectionActivity.this);
-            builder.setIcon(R.mipmap.ic_launcher);
-            builder.setTitle(R.string.select_warehouse);
-            builder.setItems(array, (dialog, which) -> {
-                StgeLoc = warehouses.get(which).getStgeLoc();
-                ArrayList<Material> temp = new ArrayList<>();
-                for (int i = 0; i < UtilsClass.materialsArrayList.size(); i++) {
-                    if (stock0) {
-                        if (!StgeLoc.equalsIgnoreCase("")) {
-                            if (UtilsClass.materialsArrayList.get(i).getSTGE_LOC().equalsIgnoreCase(StgeLoc)) {
-                                temp.add(UtilsClass.materialsArrayList.get(i));
-                            }
-                        } else
-                            temp.add(UtilsClass.materialsArrayList.get(i));
-                    }
-                    else {
-                        if (UtilsClass.materialsArrayList.get(i).getLABST() > 0) {
-                            if (!StgeLoc.equalsIgnoreCase("")) {
-                                if (UtilsClass.materialsArrayList.get(i).getSTGE_LOC().equalsIgnoreCase(StgeLoc)) {
-                                    temp.add(UtilsClass.materialsArrayList.get(i));
-                                }
-                            } else
-                                temp.add(UtilsClass.materialsArrayList.get(i));
-                        }
-                    }
-                }
-                MatSelRecyclerViewAdapter adapter = new MatSelRecyclerViewAdapter(ExtMaterialSelectionActivity.this, temp);
-                recyclerViewMaterials.setHasFixedSize(true);
-                recyclerViewMaterials.setLayoutManager(new LinearLayoutManager(ExtMaterialSelectionActivity.this));
-                recyclerViewMaterials.setAdapter(adapter);
-                recyclerViewMaterials.setVisibility(View.VISIBLE);
-            });
-            builder.show();
-        }
         if (item.getItemId() == R.id.action_stock_empty){
+            if (!searchView.isIconified()) {
+                searchView.setQuery("", true);
+                searchView.setIconified(true);
+                Tools.hideKeyboard(ExtMaterialSelectionActivity.this);
+            }
             if (item.isChecked()){
                 item.setChecked(false);
                 stock0 = false;
@@ -178,10 +148,10 @@ public class ExtMaterialSelectionActivity extends AppCompatActivity {
                     }
                 }
             }
-            MatSelRecyclerViewAdapter adapter = new MatSelRecyclerViewAdapter(ExtMaterialSelectionActivity.this, temp);
+            matSelRecyclerViewAdapter = new MatSelRecyclerViewAdapter(ExtMaterialSelectionActivity.this, temp);
             recyclerViewMaterials.setHasFixedSize(true);
             recyclerViewMaterials.setLayoutManager(new LinearLayoutManager(ExtMaterialSelectionActivity.this));
-            recyclerViewMaterials.setAdapter(adapter);
+            recyclerViewMaterials.setAdapter(matSelRecyclerViewAdapter);
             recyclerViewMaterials.setVisibility(View.VISIBLE);
         }
         return super.onOptionsItemSelected(item);

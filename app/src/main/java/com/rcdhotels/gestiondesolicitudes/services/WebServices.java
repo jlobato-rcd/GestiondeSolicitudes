@@ -15,7 +15,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,6 +56,7 @@ public class WebServices {
                     "               <Zsumi></Zsumi>\n" +
                     "               <Stock0></Stock0>\n" +
                     "               <Conf></Conf>\n" +
+                    "               <StgeLocType></StgeLocType>\n" +
                     "            </item>\n" +
                     "         </Catalogo>\n" +
                     "         <Werks>"+user.getHotel().getIdSociety()+"</Werks>\n" +
@@ -91,6 +91,7 @@ public class WebServices {
                 warehouse.setZsumi(element.getElementsByTagName("Zsumi").item(0).getTextContent());
                 warehouse.setStock0(element.getElementsByTagName("Stock0").item(0).getTextContent());
                 warehouse.setConf(element.getElementsByTagName("Conf").item(0).getTextContent());
+                warehouse.setStgeLocType(element.getElementsByTagName("StgeLocType").item(0).getTextContent());
                 if (!warehouse.getStgeLoc().equalsIgnoreCase(""))
                     warehouses.add(warehouse);
             }
@@ -100,7 +101,7 @@ public class WebServices {
         return warehouses;
     }
 
-    public static ArrayList<Material> GetProductCatalog(int ztype){
+    public static ArrayList<Material> GetMaterialsCatalog(String StgeLocSumi, String Mtart){
 
         ArrayList<Material> materials = new ArrayList<>();
         String url = host + cataprod;
@@ -120,11 +121,14 @@ public class WebServices {
                     "               <Labst></Labst>\n" +
                     "               <EntryUom></EntryUom>\n" +
                     "               <Verpr></Verpr>\n" +
+                    "               <Mtart></Mtart>\n" +
                     "            </item>\n" +
                     "         </Catalogo>\n" +
+                    "         <Mtart>"+Mtart+"</Mtart>\n" +
                     "         <Plant>"+user.getHotel().getIdSociety()+"</Plant>\n" +
                     "         <StgeLoc>"+user.getWarehouse()+"</StgeLoc>\n" +
-                    "         <Ztype>"+ztype+"</Ztype>\n" +
+                    "         <StgeLocSumi>"+StgeLocSumi+"</StgeLocSumi>\n" +
+                    "         <Ztype>1</Ztype>\n" +
                     "      </urn:ZppCatalproDev>\n" +
                     "   </soapenv:Body>\n" +
                     "</soapenv:Envelope>";
@@ -157,6 +161,7 @@ public class WebServices {
                     material.setSTGE_LOC(element.getElementsByTagName("StgeLoc").item(0).getTextContent());
                     material.setLABST(Float.parseFloat(element.getElementsByTagName("Labst").item(0).getTextContent()));
                     material.setENTRY_UOM(element.getElementsByTagName("EntryUom").item(0).getTextContent());
+                    material.setMTART(element.getElementsByTagName("Mtart").item(0).getTextContent());
                     materials.add(material);
                 }
             }
@@ -167,7 +172,7 @@ public class WebServices {
         return materials;
     }
 
-    public static ArrayList<Material> GetRetMaterialsOnStock(){
+    public static ArrayList<Material> GetRetMaterialsOnStock(String Mtart){
 
         ArrayList<Material> materials = new ArrayList<>();
         String url = host + cataprod;
@@ -187,10 +192,13 @@ public class WebServices {
                     "               <Labst></Labst>\n" +
                     "               <EntryUom></EntryUom>\n" +
                     "               <Verpr></Verpr>\n" +
+                    "               <Mtart></Mtart>\n" +
                     "            </item>\n" +
                     "         </Catalogo>\n" +
+                    "         <Mtart>"+Mtart+"</Mtart>\n" +
                     "         <Plant>"+user.getHotel().getIdSociety()+"</Plant>\n" +
                     "         <StgeLoc>"+user.getWarehouse()+"</StgeLoc>\n" +
+                    "         <StgeLocSumi></StgeLocSumi>\n" +
                     "         <Ztype>0</Ztype>\n" +
                     "      </urn:ZppCatalproDev>\n" +
                     "   </soapenv:Body>\n" +
@@ -345,8 +353,11 @@ public class WebServices {
                             request.getMaterials().get(j).setMATDOCUMENTYEAR(Integer.parseInt(element.getElementsByTagName("DocYear").item(0).getTextContent()));
                             request.getMaterials().get(j).setPROCESSED(1);
                         }
-                        else
+                        else{
                             request.getMaterials().get(j).setPROCESSED(2);
+                            request.setTEXT(element.getElementsByTagName("Message").item(0).getTextContent());
+                            request.setSTATUS(6);
+                        }
                     }
                 }
             }

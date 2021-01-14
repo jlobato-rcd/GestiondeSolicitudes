@@ -3,12 +3,18 @@ package com.rcdhotels.gestiondesolicitudes.main;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.rcdhotels.gestiondesolicitudes.BuildConfig;
 import com.rcdhotels.gestiondesolicitudes.R;
+import com.rcdhotels.gestiondesolicitudes.dbhelper.Request_Management;
 import com.rcdhotels.gestiondesolicitudes.login.LoginActivity;
+
+import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.SQL_DELETE_WAREHOUSE_TABLE;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -17,6 +23,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        TextView textViewVersion = findViewById(R.id.textViewVersion);
+        textViewVersion.setText(BuildConfig.VERSION_NAME);
         Thread timerThread = new Thread(){
             public void run(){
                 try{

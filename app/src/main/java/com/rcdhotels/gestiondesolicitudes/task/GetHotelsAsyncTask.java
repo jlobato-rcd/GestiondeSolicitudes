@@ -3,6 +3,7 @@ package com.rcdhotels.gestiondesolicitudes.task;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.rcdhotels.gestiondesolicitudes.R;
+import com.rcdhotels.gestiondesolicitudes.dbhelper.Request_Management;
 import com.rcdhotels.gestiondesolicitudes.model.Hotel;
 
 import org.json.JSONArray;
@@ -25,6 +27,11 @@ import java.util.ArrayList;
 
 import static com.rcdhotels.gestiondesolicitudes.connection.ConnectionConfig.hanaHost;
 import static com.rcdhotels.gestiondesolicitudes.database.HotelsTableQuerys.InsertHotels;
+import static com.rcdhotels.gestiondesolicitudes.database.HotelsTableQuerys.SQL_DELETE_HOTEL_TABLE;
+import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.SQL_DELETE_PERMISSIONS_TABLE;
+import static com.rcdhotels.gestiondesolicitudes.database.UserTableQuerys.SQL_DELETE_USER_TABLE;
+import static com.rcdhotels.gestiondesolicitudes.database.WarehouseTableQuerys.SQL_DELETE_WAREHOUSE_TABLE;
+import static com.rcdhotels.gestiondesolicitudes.dbhelper.Request_Management.*;
 import static com.rcdhotels.gestiondesolicitudes.services.XSJSServices.getProperties;
 
 public class GetHotelsAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -40,14 +47,21 @@ public class GetHotelsAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... args) {
         hotels = getProperties(context);
-        if (hotels != null)
+        if (hotels != null) {
+            DbHelper dbHelper = new DbHelper(context);
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.execSQL(SQL_DELETE_USER_TABLE);
+            db.execSQL(SQL_DELETE_PERMISSIONS_TABLE);
+            db.execSQL(SQL_DELETE_HOTEL_TABLE);
+            db.execSQL(SQL_DELETE_WAREHOUSE_TABLE);
+            dbHelper.onCreate(db);
             InsertHotels(hotels, context);
+        }
         return null;
     }
 
     @Override
     protected void onPostExecute(Void result) {
-
         Spinner hotelsSpinner = ((Activity)context).findViewById(R.id.spinnerHotels);
         if(hotels != null && !hotels.isEmpty()) {
             hotelsSpinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, hotels));

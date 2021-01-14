@@ -19,6 +19,7 @@ public class Request {
     private int CONF;
     private String TEXT;
     private float TOTAL_VERPR;
+    private String MAT_TYPE;
     private ArrayList<Material> materials = new ArrayList<>();
 
     public int getIDREQUEST() {
@@ -143,6 +144,7 @@ public class Request {
                 ", \"RELEASE\":" + RELEASE +
                 ", \"CONF\":" + CONF +
                 ", \"TOTAL_VERPR\":" + TOTAL_VERPR +
+                ", \"MAT_TYPE\":\"" + MAT_TYPE + "\"" +
                 ", \"TEXT\":\"" + TEXT + "\"}";
     }
 
@@ -152,5 +154,13 @@ public class Request {
 
     public void setMaterials(ArrayList<Material> materials) {
         this.materials = materials;
+    }
+
+    public String getMAT_TYPE() {
+        return MAT_TYPE;
+    }
+
+    public void setMAT_TYPE(String MAT_TYPE) {
+        this.MAT_TYPE = MAT_TYPE;
     }
 }

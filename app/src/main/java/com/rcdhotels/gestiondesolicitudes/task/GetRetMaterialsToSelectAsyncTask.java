@@ -2,6 +2,7 @@ package com.rcdhotels.gestiondesolicitudes.task;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -19,9 +20,9 @@ import com.rcdhotels.gestiondesolicitudes.model.UtilsClass;
 
 import java.util.ArrayList;
 
-import static com.rcdhotels.gestiondesolicitudes.services.WebServices.GetProductCatalog;
+import static com.rcdhotels.gestiondesolicitudes.services.WebServices.GetRetMaterialsOnStock;
 
-public class GetMaterialsAsyncTask extends AsyncTask<Void, Void, Void> {
+public class GetRetMaterialsToSelectAsyncTask extends AsyncTask<Void, Void, Void> {
 
     @SuppressLint("StaticFieldLeak")
     private Context context;
@@ -30,27 +31,26 @@ public class GetMaterialsAsyncTask extends AsyncTask<Void, Void, Void> {
     private SwipeRefreshLayout swipeLayout;
     @SuppressLint("StaticFieldLeak")
     private RecyclerView recyclerViewMaterials;
-    private int ztype;
+    private String Mtart;
+    private ProgressDialog dialog;
 
-    public GetMaterialsAsyncTask(int ztype, Context context) {
-        this.ztype = ztype;
+    public GetRetMaterialsToSelectAsyncTask(String Mtart, Context context) {
+        this.Mtart = Mtart;
         this.context = context;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        swipeLayout = ((Activity)context).findViewById(R.id.swipe_container);
-        if (swipeLayout != null){
-            swipeLayout.setColorSchemeResources(R.color.colorAccent);
-            swipeLayout.post(() -> swipeLayout.setRefreshing(true));
-        }
+        dialog = new ProgressDialog(context);
+        dialog.setMessage(context.getString(R.string.loading));
+        dialog.setCancelable(false);
+        dialog.show();
     }
 
     @Override
     protected Void doInBackground(Void... voids) {
-        UtilsClass.materialsToProcess = null;
-        items = GetProductCatalog(ztype);
+        items = GetRetMaterialsOnStock(Mtart);
         UtilsClass.materialsArrayList = items;
         return null;
     }
@@ -67,10 +67,7 @@ public class GetMaterialsAsyncTask extends AsyncTask<Void, Void, Void> {
             MatSelRecyclerViewAdapter adapter = new MatSelRecyclerViewAdapter((Activity) context, items);
             recyclerViewMaterials.setAdapter(adapter);
             recyclerViewMaterials.setVisibility(View.VISIBLE);
-            if (swipeLayout != null) {
-                Handler handler = new Handler();
-                handler.postDelayed(() -> swipeLayout.setRefreshing(false), 1000);
-            }
         }
+        dialog.dismiss();
     }
 }
